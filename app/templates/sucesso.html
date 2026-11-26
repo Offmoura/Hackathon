@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Solicitação Enviada - Portal de Triagem{% endblock %}
+{% block content %}
+<section class="card">
+  <h1>Solicitação enviada com sucesso</h1>
+  <p class="subtitle">Sua demanda foi encaminhada para nossa equipe de atendimento.</p>
+
+  <div class="alert alert-success">
+    <p><strong>Código da solicitação:</strong></p>
+    <div class="code-highlight">{{ codigo_solicitacao }}</div>
+    <p>Categoria: <strong>{{ categoria }}</strong></p>
+  </div>
+
+  <div class="alert alert-info">
+    <strong>Status SysAid:</strong> {{ confirmacao_sysaid.mensagem }}
+    {% if confirmacao_sysaid.protocolo_sysaid %}
+    <br><strong>Protocolo SysAid:</strong> <code>{{ confirmacao_sysaid.protocolo_sysaid }}</code>
+    {% endif %}
+  </div>
+
+  <div class="actions">
+    <a class="btn btn-secondary" href="/atendente">Falar com atendente</a>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Confirmação - Portal de Triagem{% endblock %}
+{% block content %}
+<section class="card">
+  <h1>Confirme sua solicitação</h1>
+  <p class="subtitle">Revise a classificação e o resumo antes de enviar para a equipe.</p>
+
+  {% if resultado.aviso %}
+  <div class="alert alert-warning">
+    <strong>Aviso:</strong> {{ resultado.aviso }}
+  </div>
+  {% endif %}
+
+  {% if resultado.sugerir_atendente %}
+  <div class="alert alert-info">
+    <strong>Sugestão:</strong> Pela natureza ou urgência do seu pedido, recomendamos falar diretamente com um atendente humano.
+  </div>
+  {% endif %}
+
+  <div class="summary-box">
+    <p><strong>Categoria identificada:</strong> {{ resultado.categoria }}</p>
+    <p><strong>Prioridade estimada:</strong> {{ resultado.prioridade | capitalize }}</p>
+    <p><strong>Resumo:</strong> {{ resultado.resumo }}</p>
+    <hr>
+    <p><strong>Nome:</strong> {{ nome_completo }}</p>
+    <p><strong>CNPJ:</strong> {{ cnpj_formatado }}</p>
+    <p><strong>E-mail:</strong> {{ email }}</p>
+  </div>
+
+  <form method="post" action="/triagem/confirmar">
+    <input type="hidden" name="token_rascunho" value="{{ token_rascunho }}">
+    <div class="actions">
+      <button type="submit" class="btn btn-primary">Enviar para a equipe</button>
+      <a class="btn btn-secondary" href="/atendente">Falar com atendente</a>
+    </div>
+  </form>
+</section>
+{% endblock %}

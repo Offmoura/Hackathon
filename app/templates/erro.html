@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}{{ titulo }} - Portal de Triagem{% endblock %}
+{% block content %}
+<section class="card">
+  <h1>{{ titulo }}</h1>
+  <div class="alert alert-warning">{{ mensagem }}</div>
+  <p>Se preferir, você pode retornar imediatamente para a fila de atendimento humano.</p>
+  <div class="actions">
+    <a class="btn btn-primary" href="/atendente">Falar com atendente</a>
+  </div>
+</section>
+{% endblock %}

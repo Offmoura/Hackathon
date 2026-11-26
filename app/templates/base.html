@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Portal de Triagem{% endblock %}</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        Portal de Triagem
+        {% if demo_mode %}
+        <span class="badge-demo">Modo Demonstração</span>
+        {% endif %}
+      </div>
+      <a class="btn btn-secondary btn-sm" href="/atendente">Falar com atendente</a>
+    </div>
+  </header>
+
+  <main class="container">
+    {% block content %}{% endblock %}
+    <footer class="footer">
+      Atendimento automatizado com opção de transferência para equipe humana a qualquer momento.
+    </footer>
+  </main>
+</body>
+</html>

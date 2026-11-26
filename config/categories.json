@@ -1,0 +1,19 @@
+{
+  "categorias": [
+    "Financeiro",
+    "Boleto",
+    "Nota fiscal",
+    "Contrato",
+    "Cadastro",
+    "Suporte",
+    "Reclamação",
+    "Outros"
+  ],
+  "sugerir_atendente_categorias": [
+    "Reclamação",
+    "Contrato"
+  ],
+  "sugerir_atendente_prioridades": [
+    "alta"
+  ]
+}

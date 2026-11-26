@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Modo Demonstração - Portal de Triagem{% endblock %}
+{% block content %}
+<section class="card">
+  <h1>Ambiente de Demonstração</h1>
+  <p class="subtitle">
+    Simule a entrada de um cliente vindo do Blip na opção "Outros" com um link assinado de uso único.
+  </p>
+
+  <div class="alert alert-info">
+    No modo demonstração, os e-mails são gravados na pasta <code>outbox/</code> e o protocolo do SysAid é simulado.
+  </div>
+
+  <p>
+    <strong>Link gerado para a conversa <code>{{ conversa_id }}</code>:</strong>
+  </p>
+
+  <div class="actions">
+    <a class="btn btn-primary" href="/triagem?token={{ token_demo }}">Abrir Portal de Triagem</a>
+    <a class="btn btn-secondary" href="/atendente">Falar com atendente</a>
+  </div>
+</section>
+{% endblock %}

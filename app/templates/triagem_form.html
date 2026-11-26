@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Abrir Solicitação - Portal de Triagem{% endblock %}
+{% block content %}
+<section class="card">
+  <h1>Conte como podemos ajudar</h1>
+  <p class="subtitle">Preencha seus dados para direcionarmos sua solicitação para a equipe correta.</p>
+
+  {% if erros.get("geral") %}
+  <div class="alert alert-warning">{{ erros["geral"] }}</div>
+  {% endif %}
+
+  <form method="post" action="/triagem" novalidate>
+    <input type="hidden" name="token" value="{{ token }}">
+
+    <div class="form-group">
+      <label for="nome_completo">Nome completo</label>
+      <input
+        id="nome_completo"
+        name="nome_completo"
+        type="text"
+        required
+        maxlength="120"
+        value="{{ valores.nome_completo }}"
+        placeholder="Ex.: Maria Silva Oliveira"
+      >
+      {% if erros.get("nome_completo") %}
+      <div class="field-error">{{ erros["nome_completo"] }}</div>
+      {% endif %}
+    </div>
+
+    <div class="form-group">
+      <label for="cnpj">CNPJ</label>
+      <input
+        id="cnpj"
+        name="cnpj"
+        type="text"
+        required
+        maxlength="18"
+        value="{{ valores.cnpj }}"
+        placeholder="00.000.000/0000-00"
+      >
+      {% if erros.get("cnpj") %}
+      <div class="field-error">{{ erros["cnpj"] }}</div>
+      {% endif %}
+    </div>
+
+    <div class="form-group">
+      <label for="email">E-mail</label>
+      <input
+        id="email"
+        name="email"
+        type="email"
+        required
+        maxlength="160"
+        value="{{ valores.email }}"
+        placeholder="nome@empresa.com.br"
+      >
+      {% if erros.get("email") %}
+      <div class="field-error">{{ erros["email"] }}</div>
+      {% endif %}
+    </div>
+
+    <div class="form-group">
+      <label for="descricao">Descrição do pedido</label>
+      <textarea
+        id="descricao"
+        name="descricao"
+        rows="5"
+        required
+        maxlength="2000"
+        placeholder="Explique sua solicitação com detalhes (ex.: número da nota, vencimento do boleto, etc.)"
+      >{{ valores.descricao }}</textarea>
+      {% if erros.get("descricao") %}
+      <div class="field-error">{{ erros["descricao"] }}</div>
+      {% endif %}
+    </div>
+
+    <div class="actions">
+      <button type="submit" class="btn btn-primary">Continuar</button>
+      <a class="btn btn-secondary" href="/atendente">Falar com atendente</a>
+    </div>
+  </form>
+</section>
+{% endblock %}
