@@ -11,18 +11,23 @@
     <div class="topbar-inner">
       <div class="brand">
         <img class="brand-logo" src="/static/rtm-logo.png" alt="RTM">
+        <div class="brand-separator"></div>
         <span>Portal de Triagem</span>
         {% if demo_mode %}
         <span class="badge-demo">Modo Demonstração</span>
         {% endif %}
       </div>
-      <a class="btn btn-secondary btn-sm" href="/atendente">Falar com atendente</a>
+      <a class="btn btn-topbar" href="/atendente">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6A19.79 19.79 0 012.12 4.18 2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+        Falar com atendente
+      </a>
     </div>
   </header>
 
   <main class="container">
     {% block content %}{% endblock %}
     <footer class="footer">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10" opacity="0.3"/><path d="M12 16v-4M12 8h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></svg>
       Atendimento automatizado com opção de transferência para equipe humana a qualquer momento.
     </footer>
   </main>
