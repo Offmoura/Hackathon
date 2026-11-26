@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portal de Triagem RTM — Demonstração Interativa</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .demo-pills {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-bottom: 1rem;
+    }
+    .btn-pill {
+      background: var(--secondary);
+      color: var(--secondary-text);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 0.35rem 0.8rem;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-pill:hover {
+      background: #e5e7eb;
+    }
+    .eml-preview {
+      background: #111827;
+      color: #f9fafb;
+      padding: 1rem;
+      border-radius: 8px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.82rem;
+      white-space: pre-wrap;
+      overflow-x: auto;
+      margin-top: 0.75rem;
+    }
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <img class="brand-logo" src="rtm-logo.png" alt="RTM">
+        <span>Portal de Triagem</span>
+        <span class="badge-demo">Demo Estática (GitHub Pages)</span>
+      </div>
+      <button type="button" class="btn btn-secondary btn-sm" onclick="irParaAtendente()">
+        Falar com atendente
+      </button>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- TELA 1: INÍCIO / LINK DO BLIP -->
+    <section id="screen-launcher" class="card">
+      <h1>Ambiente de Demonstração</h1>
+      <p class="subtitle">
+        Simulação interativa do fluxo iniciado no Blip na opção <strong>"Outros"</strong> com link assinado de uso único.
+      </p>
+
+      <div class="alert alert-info">
+        Esta página roda 100% no navegador para o GitHub Pages. No sistema completo em Python (FastAPI + Ollama), a classificação é feita pelo modelo local e o e-mail é gravado em <code>outbox/</code> ou enviado via SMTP.
+      </div>
+
+      <p>
+        <strong>Link simulado para a conversa <code>5511999990000</code>:</strong><br>
+        <code id="demo-token-preview">/triagem?token=eyJjaWQiOiI1NTExOTk5OTkwMDAwIiwianRpIjoi...</code>
+      </p>
+
+      <div class="actions">
+        <button type="button" class="btn btn-primary" onclick="abrirFormulario()">
+          Abrir Portal de Triagem
+        </button>
+        <button type="button" class="btn btn-secondary" onclick="irParaAtendente()">
+          Falar com atendente
+        </button>
+      </div>
+    </section>
+
+    <!-- TELA 2: FORMULÁRIO -->
+    <section id="screen-form" class="card hidden">
+      <h1>Conte como podemos ajudar</h1>
+      <p class="subtitle">Preencha seus dados para direcionarmos sua solicitação para a equipe correta.</p>
+
+      <div class="demo-pills">
+        <button type="button" class="btn-pill" onclick="preencherExemplo('boleto')">Exemplo: Boleto</button>
+        <button type="button" class="btn-pill" onclick="preencherExemplo('suporte')">Exemplo: Suporte urgente</button>
+        <button type="button" class="btn-pill" onclick="preencherExemplo('reclamacao')">Exemplo: Reclamação</button>
+        <button type="button" class="btn-pill" onclick="preencherExemplo('vago')">Exemplo: Pedido vago (Revisar)</button>
+      </div>
+
+      <form id="triagem-form" novalidate onsubmit="enviarFormulario(event)">
+        <div class="form-group">
+          <label for="nome_completo">Nome completo</label>
+          <input id="nome_completo" type="text" maxlength="120" placeholder="Ex.: Maria Silva Oliveira">
+          <div id="err-nome" class="field-error"></div>
+        </div>
+
+        <div class="form-group">
+          <label for="cnpj">CNPJ</label>
+          <input id="cnpj" type="text" maxlength="18" placeholder="00.000.000/0000-00">
+          <div id="err-cnpj" class="field-error"></div>
+        </div>
+
+        <div class="form-group">
+          <label for="email">E-mail</label>
+          <input id="email" type="email" maxlength="160" placeholder="nome@empresa.com.br">
+          <div id="err-email" class="field-error"></div>
+        </div>
+
+        <div class="form-group">
+          <label for="descricao">Descrição do pedido</label>
+          <textarea id="descricao" rows="5" maxlength="2000" placeholder="Explique sua solicitação com detalhes"></textarea>
+          <div id="err-descricao" class="field-error"></div>
+        </div>
+
+        <div class="actions">
+          <button type="submit" class="btn btn-primary">Continuar</button>
+          <button type="button" class="btn btn-secondary" onclick="irParaAtendente()">Falar com atendente</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- TELA 3: CONFIRMAÇÃO -->
+    <section id="screen-confirm" class="card hidden">
+      <h1>Confirme sua solicitação</h1>
+      <p class="subtitle">Revise a classificação e o resumo antes de enviar para a equipe.</p>
+
+      <div id="confirm-aviso" class="alert alert-warning hidden">
+        <strong>Aviso:</strong> Não foi possível classificar automaticamente com segurança. O chamado seguirá marcado para revisão humana.
+      </div>
+
+      <div id="confirm-sugestao" class="alert alert-info hidden">
+        <strong>Sugestão:</strong> Pela natureza ou urgência do seu pedido, recomendamos falar diretamente com um atendente humano.
+      </div>
+
+      <div class="summary-box">
+        <p><strong>Categoria identificada:</strong> <span id="conf-categoria"></span></p>
+        <p><strong>Prioridade estimada:</strong> <span id="conf-prioridade"></span></p>
+        <p><strong>Resumo:</strong> <span id="conf-resumo"></span></p>
+        <hr>
+        <p><strong>Nome:</strong> <span id="conf-nome"></span></p>
+        <p><strong>CNPJ:</strong> <span id="conf-cnpj"></span></p>
+        <p><strong>E-mail:</strong> <span id="conf-email"></span></p>
+      </div>
+
+      <div class="actions">
+        <button type="button" class="btn btn-primary" onclick="confirmarEnvio()">Enviar para a equipe</button>
+        <button type="button" class="btn btn-secondary" onclick="voltarFormulario()">Editar dados</button>
+        <button type="button" class="btn btn-secondary" onclick="irParaAtendente()">Falar com atendente</button>
+      </div>
+    </section>
+
+    <!-- TELA 4: SUCESSO -->
+    <section id="screen-success" class="card hidden">
+      <h1>Solicitação enviada com sucesso</h1>
+      <p class="subtitle">Sua demanda foi encaminhada para nossa equipe de atendimento.</p>
+
+      <div class="alert alert-success">
+        <p><strong>Código da solicitação:</strong></p>
+        <div id="suc-codigo" class="code-highlight"></div>
+        <p>Categoria: <strong id="suc-categoria"></strong></p>
+      </div>
+
+      <div class="alert alert-info">
+        <strong>Status SysAid:</strong> Modo demonstração: protocolo fictício <code id="suc-sysaid"></code> simulado. Em produção, o protocolo será gerado pelo SysAid após leitura do e-mail.
+      </div>
+
+      <details>
+        <summary style="cursor: pointer; font-weight: 600;">Visualizar e-mail gerado para atendimento@</summary>
+        <pre id="suc-eml" class="eml-preview"></pre>
+      </details>
+
+      <div class="actions">
+        <button type="button" class="btn btn-primary" onclick="novaDemonstracao()">Nova simulação</button>
+        <button type="button" class="btn btn-secondary" onclick="irParaAtendente()">Falar com atendente</button>
+      </div>
+    </section>
+
+    <!-- TELA 5: HANDOFF HUMANO -->
+    <section id="screen-handoff" class="card hidden">
+      <h1>Transferindo para atendente humano</h1>
+      <div class="alert alert-info">
+        Em produção, este botão redireciona imediatamente para a URL configurada em <code>HUMAN_HANDOFF_URL</code> (fila humana do Blip).
+      </div>
+      <div class="actions">
+        <button type="button" class="btn btn-primary" onclick="voltarAoInicio()">Voltar para a demonstração</button>
+      </div>
+    </section>
+
+    <footer class="footer">
+      Atendimento automatizado com opção de transferência para equipe humana a qualquer momento.
+    </footer>
+  </main>
+
+  <script>
+    let estadoAtual = null;
+
+    function mostrarTela(id) {
+      ["screen-launcher", "screen-form", "screen-confirm", "screen-success", "screen-handoff"]
+        .forEach(s => document.getElementById(s).classList.add("hidden"));
+      document.getElementById(id).classList.remove("hidden");
+    }
+
+    function abrirFormulario() {
+      mostrarTela("screen-form");
+    }
+
+    function voltarFormulario() {
+      mostrarTela("screen-form");
+    }
+
+    function voltarAoInicio() {
+      mostrarTela("screen-launcher");
+    }
+
+    function irParaAtendente() {
+      mostrarTela("screen-handoff");
+    }
+
+    function novaDemonstracao() {
+      document.getElementById("triagem-form").reset();
+      limparErros();
+      mostrarTela("screen-launcher");
+    }
+
+    function limparCNPJ(valor) {
+      return (valor || "").replace(/\D/g, "");
+    }
+
+    function formatarCNPJ(valor) {
+      const d = limparCNPJ(valor);
+      if (d.length !== 14) return valor;
+      return `${d.slice(0,2)}.${d.slice(2,5)}.${d.slice(5,8)}/${d.slice(8,12)}-${d.slice(12)}`;
+    }
+
+    function validarCNPJ(cnpj) {
+      const d = limparCNPJ(cnpj);
+      if (d.length !== 14) return false;
+      if (/^(\d)\1{13}$/.test(d)) return false;
+
+      const calc = (base, pesos) => {
+        let soma = 0;
+        for (let i = 0; i < pesos.length; i++) soma += Number(base[i]) * pesos[i];
+        const resto = soma % 11;
+        return resto < 2 ? 0 : 11 - resto;
+      };
+
+      const dv1 = calc(d.slice(0, 12), [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]);
+      const dv2 = calc(d.slice(0, 12) + dv1, [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]);
+      return d.slice(12) === `${dv1}${dv2}`;
+    }
+
+    function preencherExemplo(tipo) {
+      limparErros();
+      const exemplos = {
+        boleto: {
+          nome: "Ana Silva",
+          cnpj: "11.222.333/0001-81",
+          email: "ana.silva@exemplo.com.br",
+          descricao: "Preciso da segunda via do boleto da mensalidade que vence amanhã."
+        },
+        suporte: {
+          nome: "Pedro Oliveira",
+          cnpj: "11.444.777/0001-61",
+          email: "pedro@exemplo.com.br",
+          descricao: "Urgente! Nosso sistema está totalmente fora do ar desde as 8h e a operação parou."
+        },
+        reclamacao: {
+          nome: "Leandro Costa",
+          cnpj: "12.345.678/0001-95",
+          email: "leandro@exemplo.com.br",
+          descricao: "Quero registrar uma reclamação formal pelo péssimo atendimento recebido ontem e cobrança duplicada."
+        },
+        vago: {
+          nome: "Bianca Santos",
+          cnpj: "11.222.333/0001-81",
+          email: "bianca@exemplo.com.br",
+          descricao: "Oi, preciso de ajuda com uma coisa aqui."
+        }
+      };
+      const ex = exemplos[tipo];
+      document.getElementById("nome_completo").value = ex.nome;
+      document.getElementById("cnpj").value = ex.cnpj;
+      document.getElementById("email").value = ex.email;
+      document.getElementById("descricao").value = ex.descricao;
+    }
+
+    function limparErros() {
+      ["err-nome", "err-cnpj", "err-email", "err-descricao"].forEach(id => {
+        document.getElementById(id).textContent = "";
+      });
+    }
+
+    function classificarSimulado(descricao) {
+      const txt = descricao.toLowerCase();
+      if (txt.includes("reclama") || txt.includes("procon") || txt.includes("absurdo")) {
+        return {
+          categoria: "Reclamação",
+          prioridade: "alta",
+          resumo: "Cliente registra reclamação formal e solicita resolução prioritária.",
+          automatica: true,
+          sugerirAtendente: true
+        };
+      }
+      if (txt.includes("fora do ar") || txt.includes("erro") || txt.includes("sistema") || txt.includes("login")) {
+        const alta = txt.includes("urgente") || txt.includes("parou") || txt.includes("fora do ar");
+        return {
+          categoria: "Suporte",
+          prioridade: alta ? "alta" : "média",
+          resumo: "Cliente relata indisponibilidade ou falha técnica no sistema.",
+          automatica: true,
+          sugerirAtendente: alta
+        };
+      }
+      if (txt.includes("boleto")) {
+        return {
+          categoria: "Boleto",
+          prioridade: "média",
+          resumo: "Cliente solicita segunda via ou atualização de boleto para pagamento.",
+          automatica: true,
+          sugerirAtendente: false
+        };
+      }
+      if (txt.includes("nota fiscal") || txt.includes("nf-e") || txt.includes("danfe")) {
+        return {
+          categoria: "Nota fiscal",
+          prioridade: "média",
+          resumo: "Cliente solicita emissão, envio ou correção de nota fiscal.",
+          automatica: true,
+          sugerirAtendente: false
+        };
+      }
+      if (txt.includes("contrato") || txt.includes("rescis") || txt.includes("aditivo")) {
+        return {
+          categoria: "Contrato",
+          prioridade: "média",
+          resumo: "Cliente trata de cláusulas, aditivo ou rescisão contratual.",
+          automatica: true,
+          sugerirAtendente: true
+        };
+      }
+      if (txt.length < 45 || txt.includes("uma coisa")) {
+        return {
+          categoria: "Revisar",
+          prioridade: "média",
+          resumo: descricao.slice(0, 180),
+          automatica: false,
+          sugerirAtendente: false
+        };
+      }
+      return {
+        categoria: "Outros",
+        prioridade: "baixa",
+        resumo: descricao.slice(0, 180),
+        automatica: true,
+        sugerirAtendente: false
+      };
+    }
+
+    function enviarFormulario(event) {
+      event.preventDefault();
+      limparErros();
+
+      const nome = document.getElementById("nome_completo").value.trim();
+      const cnpj = document.getElementById("cnpj").value.trim();
+      const email = document.getElementById("email").value.trim().toLowerCase();
+      const descricao = document.getElementById("descricao").value.trim();
+
+      let valido = true;
+      if (nome.length < 3) {
+        document.getElementById("err-nome").textContent = "Informe seu nome completo (mínimo de 3 caracteres).";
+        valido = false;
+      }
+      if (!validarCNPJ(cnpj)) {
+        document.getElementById("err-cnpj").textContent = "CNPJ inválido. Verifique os 14 dígitos informados.";
+        valido = false;
+      }
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+        document.getElementById("err-email").textContent = "Informe um endereço de e-mail válido.";
+        valido = false;
+      }
+      if (descricao.length < 10) {
+        document.getElementById("err-descricao").textContent = "Descreva seu pedido com pelo menos 10 caracteres.";
+        valido = false;
+      } else if (/(token\s*:|bearer\s+[a-z0-9._-]{8,}|senha\s*:)/i.test(descricao)) {
+        document.getElementById("err-descricao").textContent = "Por segurança, remova tokens ou senhas da descrição antes de enviar.";
+        valido = false;
+      }
+
+      if (!valido) return;
+
+      const resultado = classificarSimulado(descricao);
+      estadoAtual = { nome, cnpj: formatarCNPJ(cnpj), email, descricao, resultado };
+
+      document.getElementById("conf-categoria").textContent = resultado.categoria;
+      document.getElementById("conf-prioridade").textContent =
+        resultado.prioridade.charAt(0).toUpperCase() + resultado.prioridade.slice(1);
+      document.getElementById("conf-resumo").textContent = resultado.resumo;
+      document.getElementById("conf-nome").textContent = nome;
+      document.getElementById("conf-cnpj").textContent = estadoAtual.cnpj;
+      document.getElementById("conf-email").textContent = email;
+
+      document.getElementById("confirm-aviso").classList.toggle("hidden", resultado.automatica);
+      document.getElementById("confirm-sugestao").classList.toggle("hidden", !resultado.sugerirAtendente);
+
+      mostrarTela("screen-confirm");
+    }
+
+    function confirmarEnvio() {
+      if (!estadoAtual) return;
+      const agora = new Date();
+      const ymd = agora.toISOString().slice(0, 10).replace(/-/g, "");
+      const hex = Math.floor(1000 + Math.random() * 55535).toString(16).toUpperCase().padStart(4, "0").slice(0, 4);
+      const codigo = `TRI-${ymd}-${hex}`;
+      const sysaid = `SYS-DEMO-${hex}9A`;
+
+      const { nome, cnpj, email, descricao, resultado } = estadoAtual;
+      const eml = [
+        `Subject: [${codigo}] Triagem (${resultado.categoria}) - CNPJ ${cnpj}`,
+        `From: triagem@suaempresa.com.br`,
+        `To: atendimento@suaempresa.com.br`,
+        `Reply-To: ${email}`,
+        ``,
+        `Código da solicitação: ${codigo}`,
+        `ID da conversa (Blip): 5511999990000`,
+        `Categoria sugerida: ${resultado.categoria}`,
+        `Prioridade sugerida: ${resultado.prioridade}`,
+        `Classificação IA: ${resultado.automatica ? "Automática" : "Revisão manual necessária (fallback)"}`,
+        ``,
+        `--- Resumo ---`,
+        resultado.resumo,
+        ``,
+        `--- Dados do Cliente ---`,
+        `Nome completo: ${nome}`,
+        `CNPJ: ${cnpj}`,
+        `E-mail: ${email}`,
+        ``,
+        `--- Mensagem Original ---`,
+        descricao
+      ].join("\n");
+
+      document.getElementById("suc-codigo").textContent = codigo;
+      document.getElementById("suc-categoria").textContent = resultado.categoria;
+      document.getElementById("suc-sysaid").textContent = sysaid;
+      document.getElementById("suc-eml").textContent = eml;
+
+      mostrarTela("screen-success");
+    }
+  </script>
+</body>
+</html>
