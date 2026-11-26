@@ -8,7 +8,7 @@ import re
 from functools import lru_cache
 from pathlib import Path
 
-from pydantic import Field
+from pydantic import AliasChoices, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -24,7 +24,11 @@ class Settings(BaseSettings):
     )
 
     demo_mode: bool = Field(default=True, alias="DEMO_MODE")
-    secret_key: str = Field(default="", alias="SECRET_KEY")
+    secret_key: str = Field(
+        default="",
+        alias="SECRET_KEY",
+        validation_alias=AliasChoices("SECRET_KEY", "SESSION_SECRET"),
+    )
     token_ttl_seconds: int = Field(default=900, alias="TOKEN_TTL_SECONDS")
     human_handoff_url: str = Field(
         default="https://blip.suaempresa.com.br/handoff",
