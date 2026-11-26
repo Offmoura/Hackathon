@@ -49,9 +49,18 @@ body {
 }
 
 .brand {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
   font-weight: 700;
   font-size: 1.05rem;
   color: var(--text);
+}
+
+.brand-logo {
+  height: 26px;
+  width: auto;
+  display: block;
 }
 
 .badge-demo {
